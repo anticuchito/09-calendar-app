@@ -4,7 +4,8 @@ import DateTimePicker from "react-datetime-picker";
 import moment from "moment";
 import { useState } from "react";
 import Swal from "sweetalert2";
-
+import { useSelector, useDispatch } from "react-redux";
+import { uiCloseModal } from "../../actions/ui";
 
 const customStyles = {
   content: {
@@ -22,64 +23,71 @@ const laterDate = nowDate.clone().add(1, "hours");
 
 Modal.setAppElement("#root");
 export const CalendarModal = () => {
-  // set values intials on datestart, dateend and init formulary whith set state 
+  // set values intials on datestart, dateend and init formulary whith set state
   const [dateStart, setDateStart] = useState(nowDate.toDate());
   const [dateEnd, setDateEnd] = useState(laterDate.toDate());
   const [titleValid, setTitleValid] = useState(true);
   const [formValues, setFormValues] = useState({
-      title: 'evento',
-      notes:'',
-      start:nowDate.toDate(),
-      end:laterDate.toDate()
+    title: "evento",
+    notes: "",
+    start: nowDate.toDate(),
+    end: laterDate.toDate(),
   });
-// desstructuring values on formValues
-  const { notes, title, end, start} = formValues;
+  //extracting data on redux whith use selector and use useDispach
+  const dispatch = useDispatch();
+  const { modalOpen } = useSelector((state) => state.ui);
+  // desstructuring values on formValues
+  const { notes, title, end, start } = formValues;
 
-  const handleInputchange= ({target})=> {
+  const handleInputchange = ({ target }) => {
     setFormValues({
       ...formValues,
-      [target.name]: target.value
+      [target.name]: target.value,
     });
-  }
+  };
 
   // fuctions events
   const closeModal = () => {
-    // cerrar el modal
+      dispatch(uiCloseModal());
   };
+
   const handleEndChange = (e) => {
     setDateEnd(e);
-    setFormValues ({
+    setFormValues({
       ...formValues,
-      end:e
-    })
+      end: e,
+    });
   };
 
   const handleStartChange = (e) => {
     setDateStart(e);
-    setFormValues ({
+    setFormValues({
       ...formValues,
-      start:e
-    })
+      start: e,
+    });
   };
 
-  const handleFormSubmit = (e) =>{
+  const handleFormSubmit = (e) => {
     e.preventDefault();
     const momentStart = moment(start);
     const momentEnd = moment(end);
-    if(momentStart.isSameOrAfter(momentEnd)){
-      return Swal.fire('Error', 'la fecha fin debe de ser mayor a la fecha de inicio', 'error')
-    }if(title.trim().length <2){
-      return  setTitleValid(false);
+    if (momentStart.isSameOrAfter(momentEnd)) {
+      return Swal.fire(
+        "Error",
+        "la fecha fin debe de ser mayor a la fecha de inicio",
+        "error"
+      );
     }
-
+    if (title.trim().length < 2) {
+      return setTitleValid(false);
+    }
     //realizar evualacionde bases de datos
     setTitleValid(true);
-    closeModal()
-    
-  }
+    closeModal();
+  };
   return (
     <Modal
-      isOpen={true}
+      isOpen={modalOpen}
       // onAfterOpen={afterOpenModal}
       onRequestClose={closeModal}
       closeTimeoutMS={200}
@@ -114,7 +122,7 @@ export const CalendarModal = () => {
           <label>Titulo y notas</label>
           <input
             type="text"
-            className= {`form-control ${!titleValid && 'is-invalid'}`}
+            className={`form-control ${!titleValid && "is-invalid"}`}
             placeholder="Título del evento"
             name="title"
             autoComplete="off"
