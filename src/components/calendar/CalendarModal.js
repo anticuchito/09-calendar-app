@@ -6,7 +6,11 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import { useSelector, useDispatch } from "react-redux";
 import { uiCloseModal } from "../../actions/ui";
-import { eventAddNew, eventClearActiveEvent } from "../../actions/event";
+import {
+  eventAddNew,
+  eventClearActiveEvent,
+  eventUpdated,
+} from "../../actions/event";
 import { useEffect } from "react";
 
 const customStyles = {
@@ -44,12 +48,12 @@ export const CalendarModal = () => {
   const { notes, title, end, start } = formValues;
 
   useEffect(() => {
-    if(activeEvent){
-        setFormValues(activeEvent);
+    if (activeEvent) {
+      setFormValues(activeEvent);
+    }else{
+      setFormValues(initEvent);
     }
-    
-  }, [activeEvent,setFormValues])
-
+  }, [activeEvent, setFormValues]);
 
   const handleInputchange = ({ target }) => {
     setFormValues({
@@ -96,19 +100,21 @@ export const CalendarModal = () => {
       return setTitleValid(false);
     }
     //TODO: realizar evualacionde bases de datos
-
-    //cuando se realiza la verificacion y luegp se guarda
-    dispatch(
-      eventAddNew({
-        ...formValues,
-        id: new Date().getTime(),
-        user: {
-          _id: 123,
-          name: "miguel",
-        },
-      })
-    );
-
+    
+    if (activeEvent) {
+      dispatch(eventUpdated(formValues));
+    } else {
+      dispatch(
+        eventAddNew({
+          ...formValues,
+          id: new Date().getTime(),
+          user: {
+            _id: 123,
+            name: "miguel",
+          },
+        })
+      );
+    }
     setTitleValid(true);
     closeModal();
   };
@@ -122,7 +128,7 @@ export const CalendarModal = () => {
       className="modal "
       overlayClassName="modal-fondo"
     >
-      <h1> Nuevo evento </h1>
+      <h1> {(activeEvent)?'Editar Evento':'Nuevo evento'} </h1>
       <hr />
       <form className="container" onSubmit={handleFormSubmit}>
         <div className="form-group">
